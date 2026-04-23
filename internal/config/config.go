@@ -11,10 +11,10 @@ type Config struct {
 }
 
 type Shopify struct {
-	BaseUrl    string
-	GraphQLUrl string
-	APIKey     string
-	APISecret  string
+	BaseUrl   string
+	GraphUrl  string
+	APIKey    string
+	APISecret string
 }
 
 type ServerConfig struct {
@@ -24,7 +24,7 @@ type ServerConfig struct {
 func LoadEnv() (*Config, error) {
 	cfg := &Config{}
 
-	cfg.Shopify.BaseUrl = getEnvOrDefault("SHOPIFY_GRAPHQL_URL", "https://shopify.dev.com")
+	cfg.Shopify.GraphUrl = getEnvOrDefault("SHOPIFY_GRAPHQL_URL", "https://shopify.dev.com")
 	cfg.Shopify.BaseUrl = getEnvOrDefault("SHOPIFY_BASE_URL", "https://shopify.dev.com")
 	cfg.Shopify.APIKey = getEnvOrWarn("SHOPIFY_API_KEY")
 	cfg.Shopify.APISecret = getEnvOrWarn("SHOPIFY_API_SECRET")

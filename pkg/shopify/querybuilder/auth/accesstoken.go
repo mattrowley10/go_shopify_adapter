@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -9,16 +10,21 @@ import (
 	shopify_types "github.com/mattrowley10/the_faywood_adapter/pkg/shopify/types"
 )
 
-func (b *AuthBuilder) GetToken(ctx context.Context, tokenReq shopify_types.TokenReq) (*shopify_types.TokenResp, error) {
+func (b *AuthBuilder) GetToken(ctx context.Context, tokenReq *shopify_types.TokenReq) (*shopify_types.TokenResp, error) {
 	url := "/admin/oauth/access_token"
 	endpoint := b.baseUrl + url
 
-	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, nil)
+	bodybytes, err := json.Marshal(tokenReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal token request: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewReader(bodybytes))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	resp, err := b.client.Client.Do(req)
+	resp, err := b.client.RoundTrip(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to perform request: %w", err)
 	}
