@@ -18,7 +18,7 @@ type Client struct {
 	shopdomain  string
 	accesstoken string
 	version     string
-	client      *http.Client
+	Client      *http.Client
 	transport   *http.Transport
 }
 
@@ -54,7 +54,7 @@ func NewClient(shopdomain string, accesstoken string, client *http.Client) *Clie
 		shopdomain:  shopdomain,
 		accesstoken: accesstoken,
 		version:     string(types.Version),
-		client:      client,
+		Client:      client,
 		transport:   transport,
 	}
 }
@@ -94,7 +94,7 @@ func (c *Client) doRequest(
 	clientreq.Header.Set("Content-Type", "Application/json")
 	clientreq.Header.Set("x-shopify-access-token", c.accesstoken)
 
-	resp, err := c.client.Do(clientreq)
+	resp, err := c.Client.Do(clientreq)
 	if err != nil {
 		return ErrHTTPRequest
 	}
@@ -123,7 +123,7 @@ func (c *Client) doRequest(
 	return nil
 }
 
-func (c *Client) Post(ctx context.Context, req types.ShopReq, result any) error {
+func (c *Client) Post(ctx context.Context, req *types.ShopReq, result any) error {
 	if req.Query == "" {
 		return ErrEmptyQuery
 	}
