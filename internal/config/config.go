@@ -11,8 +11,9 @@ type Config struct {
 }
 
 type Shopify struct {
-	BaseUrl string
-	APIKey  string
+	BaseUrl   string
+	APIKey    string
+	APISecret string
 }
 
 type ServerConfig struct {
@@ -24,6 +25,7 @@ func LoadEnv() (*Config, error) {
 
 	cfg.Shopify.BaseUrl = getEnvOrDefault("SHOPIFY_BASE_URL", "https://shopify.dev.com")
 	cfg.Shopify.APIKey = getEnvOrWarn("SHOPIFY_API_KEY")
+	cfg.Shopify.APISecret = getEnvOrWarn("SHOPIFY_API_SECRET")
 	cfg.Server.ListenAddr = getEnvOrDefault("LISTEN_ADDR", ":8000")
 
 	return cfg, nil
