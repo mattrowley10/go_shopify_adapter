@@ -13,6 +13,12 @@ import (
 
 	"github.com/mattrowley10/the_faywood_adapter/internal/config"
 	"github.com/mattrowley10/the_faywood_adapter/pkg/shopify/querybuilder/auth"
+	"github.com/mattrowley10/the_faywood_adapter/pkg/shopify/querybuilder/cart"
+	"github.com/mattrowley10/the_faywood_adapter/pkg/shopify/querybuilder/checkout"
+	"github.com/mattrowley10/the_faywood_adapter/pkg/shopify/querybuilder/collections"
+	"github.com/mattrowley10/the_faywood_adapter/pkg/shopify/querybuilder/customers"
+	"github.com/mattrowley10/the_faywood_adapter/pkg/shopify/querybuilder/orders"
+	"github.com/mattrowley10/the_faywood_adapter/pkg/shopify/querybuilder/products"
 	"github.com/mattrowley10/the_faywood_adapter/pkg/shopify/types"
 )
 
@@ -32,10 +38,16 @@ type Shopifyer interface {
 }
 
 var (
-	ErrEmptyQuery  = errors.New("query cannot be empty")
-	ErrNilResult   = errors.New("result cannot be nil")
-	ErrHTTPRequest = errors.New("failed to make HTTP request")
-	ErrHTTPStatus  = errors.New("shopify returned an error")
+	ErrEmptyQuery       = errors.New("query cannot be empty")
+	ErrNilResult        = errors.New("result cannot be nil")
+	ErrHTTPRequest      = errors.New("failed to make HTTP request")
+	ErrHTTPStatus       = errors.New("shopify returned an error")
+	ErrNilCustomerReq   = errors.New("customer request cannot be nil")
+	ErrNilProductReq    = errors.New("product request cannot be nil")
+	ErrNilCollectionReq = errors.New("collection request cannot be nil")
+	ErrNilCartReq       = errors.New("cart request cannot be nil")
+	ErrNilCheckoutReq   = errors.New("checkout request cannot be nil")
+	ErrNilOrderReq      = errors.New("order request cannot be nil")
 )
 
 func NewClient(cfg config.Config, client *http.Client, auth auth.Auther) *Client {
@@ -152,4 +164,109 @@ func (c *Client) Post(ctx context.Context, req *types.ShopReq, result any) error
 		req.Variables,
 		result,
 	)
+}
+
+func (c *Client) Querycustomers(ctx context.Context, req *customers.CustomerQueryReq) (*types.CustomerQueryResp, error) {
+	if req == nil {
+		return nil, ErrNilCustomerReq
+	}
+
+	query := customers.Query(req)
+	result := &types.CustomerQueryResp{}
+
+	if err := c.doRequest(ctx, http.MethodPost, query, map[string]any{}, result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (c *Client) Queryproducts(ctx context.Context, req *products.ProductQueryReq) (*types.ProductQueryResp, error) {
+	if req == nil {
+		return nil, ErrNilProductReq
+	}
+
+	query := products.Query(req)
+	result := &types.ProductQueryResp{}
+
+	if err := c.doRequest(ctx, http.MethodPost, query, map[string]any{}, result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (c *Client) Querycollections(ctx context.Context, req *collections.CollectionQueryReq) (*types.CollectionQueryResp, error) {
+	if req == nil {
+		return nil, ErrNilCollectionReq
+	}
+
+	query := collections.Query(req)
+	result := &types.CollectionQueryResp{}
+
+	if err := c.doRequest(ctx, http.MethodPost, query, map[string]any{}, result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (c *Client) Querycart(ctx context.Context, req *cart.CartQueryReq) (*types.CartQueryResp, error) {
+	if req == nil {
+		return nil, ErrNilCartReq
+	}
+
+	query := cart.Query(req)
+	result := &types.CartQueryResp{}
+
+	if err := c.doRequest(ctx, http.MethodPost, query, map[string]any{}, result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (c *Client) Mutatecart(ctx context.Context, req *cart.CartMutateReq) (*types.CartMutateResp, error) {
+	if req == nil {
+		return nil, ErrNilCartReq
+	}
+
+	query := cart.Mutate(req)
+	result := &types.CartMutateResp{}
+
+	if err := c.doRequest(ctx, http.MethodPost, query, map[string]any{}, result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (c *Client) Mutatecheckout(ctx context.Context, req *checkout.CheckoutMutateReq) (*types.CheckoutMutateResp, error) {
+	if req == nil {
+		return nil, ErrNilCheckoutReq
+	}
+
+	query := checkout.Mutate(req)
+	result := &types.CheckoutMutateResp{}
+
+	if err := c.doRequest(ctx, http.MethodPost, query, map[string]any{}, result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (c *Client) Queryorders(ctx context.Context, req *orders.OrderQueryReq) (*types.OrderQueryResp, error) {
+	if req == nil {
+		return nil, ErrNilOrderReq
+	}
+
+	query := orders.Query(req)
+	result := &types.OrderQueryResp{}
+
+	if err := c.doRequest(ctx, http.MethodPost, query, map[string]any{}, result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
