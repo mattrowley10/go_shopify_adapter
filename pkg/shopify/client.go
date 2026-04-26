@@ -11,15 +11,17 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mattrowley10/the_faywood_adapter/internal/config"
+	"github.com/mattrowley10/the_faywood_adapter/pkg/shopify/querybuilder/auth"
 	"github.com/mattrowley10/the_faywood_adapter/pkg/shopify/types"
 )
 
 type Client struct {
-	shopdomain  string
-	accesstoken string
-	version     string
-	client      *http.Client
-	transport   *http.Transport
+	cfg       config.Config
+	version   string
+	Client    *http.Client
+	transport *http.Transport
+	auth      auth.Auther
 }
 
 type ClientError struct {
@@ -36,7 +38,7 @@ var (
 	ErrHTTPStatus  = errors.New("shopify returned an error")
 )
 
-func NewClient(shopdomain string, accesstoken string, client *http.Client) *Client {
+func NewClient(cfg config.Config, client *http.Client, auth auth.Auther) *Client {
 	transport := &http.Transport{
 		DialContext: (&net.Dialer{
 			Timeout:   5 * time.Second,
@@ -51,11 +53,11 @@ func NewClient(shopdomain string, accesstoken string, client *http.Client) *Clie
 		Proxy:                 http.ProxyFromEnvironment,
 	}
 	return &Client{
-		shopdomain:  shopdomain,
-		accesstoken: accesstoken,
-		version:     string(types.Version),
-		client:      client,
-		transport:   transport,
+		cfg:       cfg,
+		version:   string(types.Version),
+		Client:    client,
+		transport: transport,
+		auth:      auth,
 	}
 }
 
@@ -66,10 +68,16 @@ func (c *Client) doRequest(
 	vars map[string]any,
 	result any,
 ) error {
-	if c.shopdomain == "" || c.accesstoken == "" {
+	if c.cfg.Shopify.GraphUrl == "" {
 		return errors.New("shopdomain or access token not found")
 	}
-	url := fmt.Sprintf("https://%s.myshopify.com/admin/api/%s/graphql.json", c.shopdomain, c.version)
+
+	tokenresponse, err := c.auth.GetToken(ctx, types.TokenReq{
+		ClientID:     c.cfg.Shopify.APIKey,
+		ClientSecret: c.cfg.Shopify.APISecret,
+		ShopURL:      c.cfg.Shopify.BaseUrl,
+	})
+	url := fmt.Sprintf("https://%s.myshopify.com/admin/api/%s/graphql.json", c.cfg.Shopify.GraphUrl, c.version)
 
 	req := types.ShopReq{
 		Query:     query,
@@ -92,9 +100,9 @@ func (c *Client) doRequest(
 	}
 
 	clientreq.Header.Set("Content-Type", "Application/json")
-	clientreq.Header.Set("x-shopify-access-token", c.accesstoken)
+	clientreq.Header.Set("x-shopify-access-token", tokenresponse.AccessToken)
 
-	resp, err := c.client.Do(clientreq)
+	resp, err := c.Client.Do(clientreq)
 	if err != nil {
 		return ErrHTTPRequest
 	}
@@ -123,7 +131,7 @@ func (c *Client) doRequest(
 	return nil
 }
 
-func (c *Client) Post(ctx context.Context, req types.ShopReq, result any) error {
+func (c *Client) Post(ctx context.Context, req *types.ShopReq, result any) error {
 	if req.Query == "" {
 		return ErrEmptyQuery
 	}
