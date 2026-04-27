@@ -39,8 +39,12 @@ func (a *App) Run() {
 	server := api.NewServer(logger)
 
 	httpserver := &http.Server{
-		Addr:    cfg.Server.ListenAddr,
-		Handler: server.Router(),
+		Addr:           cfg.Server.ListenAddr,
+		Handler:        server.Router(),
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		IdleTimeout:    60 * time.Second,
+		MaxHeaderBytes: 1 << 20, // 1MB
 	}
 	errChan := make(chan error, 1)
 
